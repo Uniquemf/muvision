@@ -1,31 +1,103 @@
+# MU Vision Sensor 3
 
-> 在 [https://uniquemf.github.io/muvision/](https://uniquemf.github.io/muvision/) 打开此页面
+The [MU Vision Sensor](http://mai.morpx.com/goods.php?id=162) is a sensor module for micro:bit and other hardware platform that support UART or I2C communication protocols.
 
-## 用作扩展
+## Basic usage
 
-此仓库可以作为 **插件** 添加到 MakeCode 中。
+* Get vision result
 
-* 打开 [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* 点击 **新项目**
-* 点击齿轮图标菜单下的 **扩展**
-* 搜索 **https://github.com/uniquemf/muvision** 并导入
+```blocks
+// Initialized MU with I2C port
+muvision.begin(MuId.Mu00, MuVsMode.kI2CMode)
+// Vision begin
+muvision.visionBegin(MuId.Mu00, MuStatus.Enable, MuVsMessageVisionType.kVisionBall)
+basic.forever(function () {
+    // Get vision status first
+    if (muvision.detected(MuId.Mu00, MuVsMessageVisionType.kVisionBall)) {
+        // If vision detected, print vision result
+        serial.writeValue("x", muvision.visionValue(MuId.Mu00, muvision.VisionType.VisionBallDetect, muvision.Params.Horizontal))
+        serial.writeValue("y", muvision.visionValue(MuId.Mu00, muvision.VisionType.VisionBallDetect, muvision.Params.Vertical))
+        serial.writeValue("w", muvision.visionValue(MuId.Mu00, muvision.VisionType.VisionBallDetect, muvision.Params.Width))
+        serial.writeValue("h", muvision.visionValue(MuId.Mu00, muvision.VisionType.VisionBallDetect, muvision.Params.Height))
+    }
+})
+```
 
-## 编辑此项目 ![构建状态标志](https://github.com/uniquemf/muvision/workflows/MakeCode/badge.svg)
+* Get light sensor result
 
-在 MakeCode 中编辑此仓库。
+```blocks
+muvision.begin(MuId.Mu00, MuVsMode.kI2CMode)
+muvision.lsBegin(MuId.Mu00, MuStatus.Enable, MuLsType.LsProximity)
+muvision.lsBegin(MuId.Mu00, MuStatus.Enable, MuLsType.LsAmbientLight)
+basic.forever(function () {
+    serial.writeValue("proximity", muvision.lsReadProximity(MuId.Mu00))
+    serial.writeValue("als", muvision.lsReadAmbientLight(MuId.Mu00))
+})
+```
 
-* 打开 [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* 点击 **导入**，然后点击 **导入 URL**
-* 粘贴 **https://github.com/uniquemf/muvision** 并点击导入
+* Read WiFi data(AP mode)
 
-## 积木块预览
+Before you use this function, you need to set the FUNC switch to 10(WiFi AT mode) or 11(video transmission mode).
 
-此图像显示主分支中最后一次提交的块代码。
-此图像可能需要几分钟才能刷新。
+```blocks
+serial.redirect(
+    SerialPin.P12,
+    SerialPin.P13,
+    BaudRate.BaudRate9600
+)
+// Wait for serial initialization to complete
+basic.pause(500)
+// Show local IP on the screen
+basic.showString(muvisionAT.wifiSIP())
+basic.forever(function () {
+    basic.showString(String.fromCharCode(muvisionAT.wifiRead()))
+})
+```
 
-![块的渲染视图](https://github.com/uniquemf/muvision/raw/master/.github/makecode/blocks.png)
+* Read WiFi data(STA mode)
 
-#### 元数据（用于搜索、渲染）
+Before you use this function, you need to set the FUNC switch to 10(WiFi AT mode) or 11(video transmission mode),
+and your device and MU must be connected to the same network.
+
+```blocks
+serial.redirect(
+SerialPin.P12,
+SerialPin.P13,
+BaudRate.BaudRate9600
+)
+// Wait for serial initialization to complete
+basic.pause(500)
+muvisionAT.wifiSet("your_ssid", "your_password", MuAtMode.ModeSTA)
+basic.showIcon(IconNames.Heart)
+// Check connect
+if (muvisionAT.wifiCon(true)) {
+    basic.showIcon(IconNames.Yes)
+    // Show local IP on the screen
+    basic.showString(muvisionAT.wifiSIP())
+    // Set target IP
+    muvisionAT.wifiUDP("your_target_ip", "3333")
+} else {
+    basic.showIcon(IconNames.No)
+}
+basic.forever(function () {
+    basic.showString(String.fromCharCode(muvisionAT.wifiRead()))
+})
+```
+
+## License
+
+MIT
+
+## Supported targets
 
 * for PXT/microbit
-<script src="https://makecode.com/gh-pages-embed.js"></script><script>makeCodeRender("{{ site.makecode.home_url }}", "{{ site.github.owner_name }}/{{ site.github.repository_name }}");</script>
+
+## What about other libraries for the MU Vision Sensor?
+
+* Arduino	    [https://github.com/mu-opensource/MuVisionSensor3](https://github.com/mu-opensource/MuVisionSensor3)
+* Mixly		    [https://github.com/mu-opensource/MuVisionSensor3-Mixly](https://github.com/mu-opensource/MuVisionSensor3-Mixly)
+* MicroPython	[https://github.com/mu-opensource/MuVisionSensor3-MicroPython](https://github.com/mu-opensource/MuVisionSensor3-MicroPython)
+
+## For more information
+
+Check out the official site [http://www.morpx.com/zn.index.html](http://www.morpx.com/zn.index.html) for links to documentation, issues, and news
